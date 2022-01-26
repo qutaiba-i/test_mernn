@@ -1,0 +1,97 @@
+import React from 'react';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter,Input,FormGroup,Label } from 'reactstrap';
+import moment from 'moment'
+import axios from 'axios'
+class ModalExample extends React.Component {
+  constructor(props) {
+    super(props);
+    console.log('props in modal_p')
+    console.log(this.props.propContent)
+    console.log(this.props.propContent.project)
+    this.state = {
+      modal: false,
+      title:this.props.propContent.project.title,
+      content:this.props.propContent.project.content,
+      status:this.props.propContent.project.status,
+      color:this.props.propContent.project.color
+    };
+
+    this.toggle = this.toggle.bind(this);
+  }
+  handleInput(e) { 
+    this.setState({
+     [e.target.name]: e.target.value
+    })
+    console.log(this.state.title)
+}
+handleClick = id => {
+  axios.put(`/story/update/${id}`, {
+    title:this.state.title,
+    content:this.state.content,
+    status:this.state.status
+  })
+  .then((response)=> {
+    if(response.data.message)
+      alert(response.data.message)
+    else{
+      this.toggle();
+      this.setState({
+        title:null,
+        content:null,
+        loading:false
+      })
+    }
+    console.log(response);
+  })
+  .catch((error)=> {
+    console.log(error);
+  });
+  
+}
+  toggle() {
+    this.setState({
+      modal: !this.state.modal
+    });
+  }
+
+  render() {
+      let {title,content,status} = this.state;
+      const {propContent,classType} = this.props;
+    return (
+      <div>
+        <Button color="primary" size="sm" className={classType} onClick={this.toggle}><i className="fas fa-arrow-alt-circle-right"/></Button>
+        <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className}>
+          <ModalHeader toggle={this.toggle}>
+          <Label for="title">Project Title:</Label><Input type="text" name="title" value={title} onChange={this.handleInput.bind(this)}/>
+          </ModalHeader>
+          <ModalBody>
+          <FormGroup>
+          <Label for="content">Project Details:</Label>
+          <Input type="textarea" name="content" value={content} onChange={this.handleInput.bind(this)}/>
+        </FormGroup>
+        <Label for="status">Is_MIS:</Label>
+            <Input type="select" value={status} name="status" id="status" onChange={this.handleInput.bind(this)}>
+                <option value="1">Backlog</option>
+                <option value="2">Todo</option>
+                <option value="3">In Progress</option>
+                <option value="4">Done</option>
+            </Input>
+          <Label for="status">Mis_proj_id:</Label>
+          <Input type="textarea" name="content" value={content} onChange={this.handleInput.bind(this)}/>
+              <hr/>
+              <i className="fas fa-calendar-alt"></i> Created Date: {moment(propContent.date).format("DD.MM.YYYY")}<br/>
+              <i className="fas fa-clock"></i> Due Date: {moment(propContent.dueDate).format("DD.MM.YYYY")}<br/>
+              <i className="fas fa-user"></i> Created by: {propContent.createdBy}
+          </ModalBody>
+          <ModalFooter>
+          {/* <img height="35" alt={propContent.project.contributors[0].name + ' '+propContent.project.contributors[0].lastName } title={propContent.project.contributors[0].name + ' '+propContent.project.contributors[0].lastName } src={'/assets/img/' + propContent.project.contributors[0].profilePhoto}/> */}
+            <Button color="primary" onClick={()=>this.handleClick(propContent.project._id)}>Update</Button>
+            <Button color="secondary" onClick={this.toggle}>Close</Button>
+          </ModalFooter>
+        </Modal>
+      </div>
+    );
+  }
+}
+
+export default ModalExample;
